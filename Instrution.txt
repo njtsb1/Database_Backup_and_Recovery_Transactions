@@ -1,34 +1,38 @@
-Desafio: Transações, Backup e Recovery (Banco: ecommerce)
+Challenge Transactions Backup and Recovery
 
-Conteúdo do repositório
-- `transactions.sql`  - Exemplos de transações sem procedure.
-- `procedure_transaction.sql` - Procedure com transação, savepoint e tratamento de erro.
-- `sample_schema.sql` - (Opcional) script para criar esquema mínimo de teste (products, customers, orders, order_items).
-- `backups/` - Pasta sugerida para colocar arquivos de backup (ex.: `ecommerce_full_backup_2026-04-09.sql.gz`).
-- `README.md` - Arquivo com instruções.
+Repository contents
+- `transactions.sql`  - Examples of transactions without a procedure.
+- `procedure_transaction.sql` - Procedure with transaction, savepoint and error handling.
+- `sample_schema.sql` - Optional script to create a minimal test schema (products, customers, orders, order_items).
+- `backups/` - Suggested folder for backup files (e.g., `ecommerce_full_backup_2026-04-09.sql.gz`).
+- `README.md` - Project instructions.
 
-Como usar os scripts SQL
-1. Conecte ao MySQL como usuário com privilégios adequados.
-2. (Opcional) Crie um banco de teste e rode `sample_schema.sql` para popular tabelas.
-3. Execute `transactions.sql` para testar transações manuais.
-4. Execute `procedure_transaction.sql` para criar a procedure:
-   - `CALL sp_create_order_with_items(1, 101, 2, 49.90, 102, 1, 29.90);`
+How to use the SQL scripts
+1. Connect to MySQL as a user with appropriate privileges.  
+2. (Optional) Create a test database and run `sample_schema.sql` to populate tables.  
+3. Run `transactions.sql` to test manual transactions.  
+4. Run `procedure_transaction.sql` to create the stored procedure and test it with a call such as:  
+   ```sql
+   CALL sp_create_order_with_items(1, 101, 2, 49.90, 102, 1, 29.90);
 
-Backup com mysqldump
-- Backup completo (com routines, events e triggers):
+Backup with mysqldump
+- Full backup including routines events and triggers:
   `mysqldump -u root -p --routines --events --triggers --databases ecommerce > ecommerce_full_backup.sql`
-- Backup consistente (InnoDB):
+- Consistent backup for InnoDB:
   `mysqldump -u root -p --single-transaction --routines --events --triggers --databases ecommerce > ecommerce_consistent.sql`
-- Compressão:
+- Compress backup:
   `mysqldump ... | gzip > ecommerce_full_backup.sql.gz`
 
 Restore
-- Restore simples:
+- Simple restore:
   `mysql -u root -p < ecommerce_full_backup.sql`
-- Restore de arquivo compactado:
+- Restore from compressed file:
   `gunzip < ecommerce_full_backup.sql.gz | mysql -u root -p`
 
-Observações importantes
-- Teste sempre o restore em ambiente de homologação.
-- Para grandes backups, prefira armazenar em storage (S3, Azure Blob) e não no Git.
-- Se incluir backups no repositório, documente o tamanho e a data no README.
+Important notes
+
+- Test restores in a staging or homologation environment before applying to production.
+- Do not store large backups directly in a Git repository. Use object storage or Git LFS for large files.
+- If you include backups in the repo for the exercise, document file size and date in the README.
+- Use a user with the required privileges to restore routines events and triggers: CREATE ROUTINE, ALTER ROUTINE, EVENT, and appropriate table privileges.
+- For high activity databases, prefer --single-transaction for consistent dumps of InnoDB tables and avoid --lock-tables.
