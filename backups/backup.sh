@@ -1,47 +1,47 @@
-# Script de backup automatizado para MySQL/MariaDB usando mysqldump
-# Uso: ./backup.sh [dest_dir]
+# Automated backup script for MySQL/MariaDB using mysqldump
+# Usage: ./backup.sh [dest_dir]
 #
-# Observações:
-# - Não passe senha na linha de comando. Configure ~/.my.cnf com usuário/senha
-#   ou exporte MYSQL_PWD como variável de ambiente (menos recomendado).
-# - Ajuste DB_NAMES, RETENTION_DAYS e outras variáveis conforme necessário.
-# - Requer: mysqldump, gzip, pv (opcional), sha256sum (opcional), aws cli (opcional)
+# Notes:
+# - Do not pass a password on the command line. Configure ~/.my.cnf with username/password
+# or export MYSQL_PWD as an environment variable (less recommended).
+# - Adjust DB_NAMES, RETENTION_DAYS and other variables as needed.
+# - Requires: mysqldump, gzip, pv (optional), sha256sum (optional), aws cli (optional)
 #
 
 set -euo pipefail
 
-# ---------- Configurações ----------
-DEST_DIR="${1:-./backups}"           # diretório de destino (padrão ./backups)
+# ---------- Settings ----------
+DEST_DIR="${1:-./backups}" # destination directory (default ./backups)
 TIMESTAMP="$(date +%F_%H%M%S)"
 HOST="localhost"
 PORT="3306"
-DB_NAMES=("ecommerce")               # bancos a serem dumpados (array)
-# Para múltiplos bancos: DB_NAMES=("ecommerce" "analytics")
+DB_NAMES=("ecommerce") # databases to be dumped (array)
+# For multiple databases: DB_NAMES=("ecommerce" "analytics")
 INCLUDE_ROUTINES=true
 INCLUDE_EVENTS=true
 INCLUDE_TRIGGERS=true
-SINGLE_TRANSACTION=true              # recomendado para InnoDB
+SINGLE_TRANSACTION=true # recommended for InnoDB
 HEX_BLOB=true
-COLUMN_STATISTICS=false              # set to true to include column-statistics
-RETENTION_DAYS=14                    # quantos dias manter
+COLUMN_STATISTICS=false # Set to true to include column-statistics
+RETENTION_DAYS=14 # How many days to keep
 COMPRESS=true
-USE_PV=false                         # se true, usa pv para mostrar progresso
+USE_PV=false # If true, use PV to show progress
 LOGFILE="${DEST_DIR}/backup_${TIMESTAMP}.log"
 SHA_FILE="${DEST_DIR}/backup_${TIMESTAMP}.sha256"
 
-# Opcional: upload para S3 (comente se não usar)
+# Optional: upload to S3 (comment if not used)
 S3_UPLOAD=false
-S3_BUCKET="s3://meu-bucket-backups"
+S3_BUCKET="s3://my-bucket-backups"
 
-# ---------- Preparação ----------
+# ---------- Preparation ----------
 mkdir -p "${DEST_DIR}"
 exec > >(tee -a "${LOGFILE}") 2>&1
 
-echo "=== Iniciando backup: ${TIMESTAMP} ==="
-echo "Destino: ${DEST_DIR}"
-echo "Bancos: ${DB_NAMES[*]}"
+echo "=== Starting backup: ${TIMESTAMP} ==="
+echo "Destination: ${DEST_DIR}"
+echo "Banks: ${DB_NAMES[*]}"
 
-# Monta opções do mysqldump
+# Mount mysqldump options
 DUMP_OPTS=()
 if [ "${INCLUDE_ROUTINES}" = true ]; then DUMP_OPTS+=(--routines); fi
 if [ "${INCLUDE_EVENTS}" = true ]; then DUMP_OPTS+=(--events); fi
@@ -50,19 +50,19 @@ if [ "${SINGLE_TRANSACTION}" = true ]; then DUMP_OPTS+=(--single-transaction); f
 if [ "${HEX_BLOB}" = true ]; then DUMP_OPTS+=(--hex-blob); fi
 if [ "${COLUMN_STATISTICS}" = false ]; then DUMP_OPTS+=(--column-statistics=0); fi
 
-# Constrói lista de bancos para mysqldump
-# Se quiser incluir CREATE DATABASE/USE, use --databases seguido dos nomes
+# Build list of banks for mysqldump
+# If you want to include CREATE DATABASE/USE, use --databases followed by the names
 DBS_ARG=(--databases "${DB_NAMES[@]}")
 
 OUTFILE_BASE="${DEST_DIR}/backup_${DB_NAMES[*]// /_}_${TIMESTAMP}.sql"
 OUTFILE="${OUTFILE_BASE}"
 if [ "${COMPRESS}" = true ]; then OUTFILE="${OUTFILE_BASE}.gz"; fi
 
-# ---------- Execução do dump ----------
-echo "Executando mysqldump..."
+# ---------- Dump execution ----------
+echo "Running mysqldump..."
 DUMP_CMD=(mysqldump -h "${HOST}" -P "${PORT}" -u backup_user "${DUMP_OPTS[@]}" "${DBS_ARG[@]}")
 
-# Nota: não inclua senha aqui; use ~/.my.cnf ou MYSQL_PWD (menos seguro)
+# Note: do not include password here; use ~/.my.cnf or MYSQL_PWD (less secure)
 if [ "${COMPRESS}" = true ]; then
   if [ "${USE_PV}" = true ] && command -v pv >/dev/null 2>&1; then
     "${DUMP_CMD[@]}" | pv | gzip > "${OUTFILE}"
@@ -77,32 +77,32 @@ else
   fi
 fi
 
-echo "Dump finalizado: ${OUTFILE}"
+echo "Dump finished: ${OUTFILE}"
 
-# ---------- Verificação de integridade (hash) ----------
+# ---------- Integrity check (hash) ----------
 if command -v sha256sum >/dev/null 2>&1; then
-  echo "Calculando SHA256..."
+  echo "Calculating SHA256..."
   sha256sum "${OUTFILE}" > "${SHA_FILE}"
-  echo "SHA salvo em ${SHA_FILE}"
+  echo "SHA saved in ${SHA_FILE}"
 fi
 
-# ---------- Upload opcional para S3 ----------
+# ---------- Optional upload to S3 ----------
 if [ "${S3_UPLOAD}" = true ]; then
   if command -v aws >/dev/null 2>&1; then
-    echo "Enviando ${OUTFILE} para ${S3_BUCKET}..."
+    echo "Sending ${OUTFILE} to ${S3_BUCKET}..."
     aws s3 cp "${OUTFILE}" "${S3_BUCKET}/" --only-show-errors
     if [ -f "${SHA_FILE}" ]; then
       aws s3 cp "${SHA_FILE}" "${S3_BUCKET}/" --only-show-errors
     fi
-    echo "Upload concluído."
+    echo "Upload complete."
   else
-    echo "aws cli não encontrado; pulando upload S3."
+    echo "aws cli not found; skipping S3 upload."
   fi
 fi
 
-# ---------- Rotação / retenção ----------
-echo "Removendo backups com mais de ${RETENTION_DAYS} dias..."
+# ---------- Rotation / Retention ----------
+echo "Removing backups older than ${RETENTION_DAYS} days..."
 find "${DEST_DIR}" -type f -mtime +"${RETENTION_DAYS}" -name 'backup_*' -print -delete || true
 
-echo "Backup concluído com sucesso em $(date +%F_%T)"
+echo "Backup completed successfully on $(date +%F_%T)"
 exit 0
