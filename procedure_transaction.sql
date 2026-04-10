@@ -14,67 +14,67 @@ CREATE PROCEDURE sp_create_order_with_items(
 BEGIN
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
-    -- Em caso de erro, faz rollback total
+    -- On error, perform a full rollback
     ROLLBACK;
-    SELECT 'ERROR' AS status, 'Transação revertida por exceção' AS message;
+    SELECT 'ERROR' AS status, 'Transaction rolled back due to exception' AS message;
   END;
 
   START TRANSACTION;
 
-  -- Insere pedido
+  -- Insert order
   INSERT INTO orders (customer_id, order_date, total_amount, status)
   VALUES (p_customer_id, NOW(), 0.00, 'PENDING');
 
   SET @new_order_id = LAST_INSERT_ID();
 
-  -- Primeiro savepoint antes de inserir itens
+  -- First savepoint before inserting items
   SAVEPOINT sp_before_items;
 
-  -- Insere primeiro item
+  -- Insert first item
   INSERT INTO order_items (order_id, product_id, quantity, unit_price)
   VALUES (@new_order_id, p_item1_product_id, p_item1_qty, p_item1_price);
 
-  -- Atualiza estoque do primeiro produto
+  -- Update stock for the first product
   UPDATE products
   SET stock = stock - p_item1_qty
   WHERE id = p_item1_product_id;
 
-  -- Verifica estoque negativo e faz rollback parcial se necessário
+  -- Check for negative stock and perform partial rollback if necessary
   SELECT stock INTO @s1 FROM products WHERE id = p_item1_product_id;
   IF @s1 < 0 THEN
-    -- Reverte apenas até o savepoint (remove o primeiro item)
+    -- Roll back only to the savepoint (remove the first item)
     ROLLBACK TO SAVEPOINT sp_before_items;
-    -- Decide continuar sem o item 1 ou abortar; aqui abortamos
+    -- Decide whether to continue without item 1 or abort; here we abort
     ROLLBACK;
-    SELECT 'ERROR' AS status, 'Estoque insuficiente para item 1' AS message;
+    SELECT 'ERROR' AS status, 'Insufficient stock for item 1' AS message;
     LEAVE proc_end;
   END IF;
 
-  -- Insere segundo item
+  -- Insert second item
   INSERT INTO order_items (order_id, product_id, quantity, unit_price)
   VALUES (@new_order_id, p_item2_product_id, p_item2_qty, p_item2_price);
 
-  -- Atualiza estoque do segundo produto
+  -- Update stock for the second product
   UPDATE products
   SET stock = stock - p_item2_qty
   WHERE id = p_item2_product_id;
 
   SELECT stock INTO @s2 FROM products WHERE id = p_item2_product_id;
   IF @s2 < 0 THEN
-    -- Reverte apenas o segundo item (volta ao savepoint)
+    -- Roll back only the second item (return to the savepoint)
     ROLLBACK TO SAVEPOINT sp_before_items;
-    -- Atualiza total do pedido com os itens que permaneceram (nenhum neste caso)
+    -- Update order total with the items that remain (none in this case)
     UPDATE orders
     SET total_amount = (
       SELECT IFNULL(SUM(quantity * unit_price), 0) FROM order_items WHERE order_id = @new_order_id
     )
     WHERE id = @new_order_id;
     COMMIT;
-    SELECT 'PARTIAL' AS status, 'Segundo item removido por estoque insuficiente; pedido criado parcialmente' AS message;
+    SELECT 'PARTIAL' AS status, 'Second item removed due to insufficient stock; order created partially' AS message;
     LEAVE proc_end;
   END IF;
 
-  -- Atualiza total do pedido
+  -- Update order total
   UPDATE orders
   SET total_amount = (
     SELECT SUM(quantity * unit_price) FROM order_items WHERE order_id = @new_order_id
@@ -82,10 +82,10 @@ BEGIN
   WHERE id = @new_order_id;
 
   COMMIT;
-  SELECT 'OK' AS status, @new_order_id AS order_id, 'Pedido criado com sucesso' AS message;
+  SELECT 'OK' AS status, @new_order_id AS order_id, 'Order created successfully' AS message;
 
 proc_end: 
-  -- fim da procedure
+  -- end of procedure
   ;
 END$$
 
