@@ -1,91 +1,92 @@
-# Parte 3 — Backup e Recovery com mysqldump (arquivo: README_backup.md e comandos de exemplo)
+# Part 3 — Backup and Recovery with mysqldump (file: README_backup.md and example commands)
 
-Objetivo: comandos práticos para gerar backups do banco ecommerce, de múltiplos bancos, incluindo routines, events e triggers, e como restaurar.
+Objective: Practical commands to generate backups of the ecommerce database, multiple databases, including routines, events, and triggers, and how to restore them.
 
-Comandos de backup (Linux/macOS/Windows WSL)
-Backup de um único banco (inclui dados e esquema):
+Backup commands (Linux/macOS/Windows WSL)
+Backup of a single database (includes data and schema):
 
 ```bash
 mysqldump -u root -p --databases ecommerce > ecommerce_backup_$(date +%F).sql
 ```
 
-Backup incluindo routines, events e triggers (recomendado para DB com procedures/events):
+Backup including routines, events and triggers (recommended for DB with procedures/events):
 
 ```bash
 mysqldump -u root -p --routines --events --triggers --databases ecommerce > ecommerce_full_backup_$(date +%F).sql
 ```
 
-Backup de múltiplos bancos (ex.: ecommerce e analytics):
+Backup of multiple banks (e.g. ecommerce and analytics):
 
 ```bash
 mysqldump -u root -p --routines --events --triggers --databases ecommerce analytics > multi_db_backup_$(date +%F).sql
 ```
 
-Backup de todos os bancos (todas as DBs):
+Backup of all banks (all DBs):
 
 ```bash
 mysqldump -u root -p --routines --events --triggers --all-databases > all_databases_backup_$(date +%F).sql
 ```
 
-Backup somente da estrutura (sem dados):
+Structure-only backup (no data):
 
 ```bash
 mysqldump -u root -p --no-data --databases ecommerce > ecommerce_schema_$(date +%F).sql
 ```
 
-Backup somente dos dados (sem CREATE TABLE):
+Backup of data only (without CREATE TABLE):
 
 ```bash
 mysqldump -u root -p --no-create-info --databases ecommerce > ecommerce_data_$(date +%F).sql
 ```
 
-Compressão do backup para economizar espaço:
+Backup compression to save space:
 
 ```bash
 mysqldump -u root -p --routines --events --triggers --databases ecommerce | gzip > ecommerce_full_backup_$(date +%F).sql.gz
 ```
 
-Comandos de restore / recovery
-Restaurar de arquivo SQL simples:
+Restore/Recovery Commands
+
+Restore from a simple SQL file:
 
 ```bash
 mysql -u root -p < ecommerce_full_backup_2026-04-09.sql
 ```
 
-Restaurar de arquivo compactado (.gz):
+Restore from a compressed file (.gz):
 
 ```bash
 gunzip < ecommerce_full_backup_2026-04-09.sql.gz | mysql -u root -p
 ```
 
-Restaurar apenas um banco específico de um dump que contém múltiplos bancos:
+Restore only a specific database from a dump containing multiple databases:
 
-Abra o arquivo .sql e extraia a seção do banco desejado (ou use sed/awk), ou importe todo o dump (se não houver conflito de nomes).
+Open the .sql file and extract the section of the desired database (or use sed/awk), or import the entire dump (if there are no name conflicts).
 
-Exemplo simples (extrair entre -- Current Database: \ecommerce\`` e próximo -- Current Database):
+Simple example (extract between `-- Current Database: \ecommerce\`` and next `-- Current Database`):
 
 ```bash
 awk '/^-- Current Database: `ecommerce`/,/^-- Current Database: /{print}' multi_db_backup.sql > ecommerce_only.sql
 mysql -u root -p < ecommerce_only.sql
 ```
 
-Restaurar apenas routines (procedures/functions) se necessário:
+Restore only routines (procedures/functions) if necessary:
 
-Se o dump foi gerado com --routines, as rotinas estarão no arquivo. Para restaurar apenas rotinas, extraia as seções DELIMITER/CREATE PROCEDURE e execute.
+If the dump was generated with `--routines`, the routines will be in the file. To restore only routines, extract the `DELIMITER`/`CREATE PROCEDURE` sections and execute.
 
-Atenção a privilégios: o usuário que restaura precisa ter CREATE ROUTINE e ALTER ROUTINE.
+Privilege caution: the user restoring needs to have `CREATE ROUTINE` and `ALTER ROUTINE` privileges.
 
-Boas práticas e observações
-Usuário e privilégios: use um usuário com privilégios suficientes para criar objetos (tables, routines, events). Para segurança, prefira criar backups com um usuário dedicado.
+Best practices and observations
+User and privileges: use a user with sufficient privileges to create objects (tables, routines, events). For security, prefer creating backups with a dedicated user.
 
-Consistência: para bancos com alta atividade, use --single-transaction (apenas para engines transacionais como InnoDB) para dump consistente sem bloquear tabelas:
+Consistency: For databases with high activity, use `--single-transaction` (only for transactional engines like InnoDB) for consistent dumps without locking tables:
 
 ```bash
 mysqldump -u root -p --single-transaction --routines --events --triggers --databases ecommerce > ecommerce_consistent.sql
 ```
 
-Bloqueio de tabelas: se usar MyISAM, considere --lock-tables.
+Table locking: If using MyISAM, consider `--lock-tables`.
 
-Testar restore: sempre testar o restore em ambiente de homologação antes de produção.
+Testing restores: Always test the restore in a staging environment before production.
 
-Versionamento no Git: não comite arquivos de backup muito grandes no Git (repositórios Git não são ideais para binários grandes). Se o backup for pequeno e for requisito do exercício, inclua o .sql (ou .sql.gz) e documente o tamanho. Alternativa: usar Git LFS ou armazenar em storage externo e colocar link no README.
+Git versioning: Do not commit very large backup files to Git (Git repositories are not ideal for large binaries). If the backup is small and required by the exercise, include the .sql (or .sql.gz) file and document the size. Alternatively: use Git LFS or store it in external storage and link to it in the README.
