@@ -1,29 +1,31 @@
-# Desafio de projeto: Criando Transações, Executando Backup e Recovery de Banco de Dados
+# Project Challenge: Creating Transactions, Performing Database Backup and Recovery
 
-PARTE 1 – TRANSAÇÕES
+PART 1 – TRANSACTIONS
 
-Objetivo:  
+Objective:
 
-Neste desafio você irá lidar com transações para executar modificações na base de dados. Sendo assim, vamos relembrar como executar uma transação. Primeiramente, é preciso desabilitar o autocommit do MySQL. Caso contrário, cada instrução SQL executada será confirmada.
+In this challenge, you will deal with transactions to execute modifications to the database. Therefore, let's review how to execute a transaction. First, you need to disable MySQL's autocommit. Otherwise, each executed SQL statement will be committed.
 
 CODE 1
 
-Essa primeira transação pode ser executada sem utilizar outros recursos como procedures. Dessa forma, você irá executar statements de consultas e modificações de dados persistidos no banco de dados via transações.  
+This first transaction can be executed without using other resources such as procedures. In this way, you will execute query statements and modify data persisted in the database via transactions.
 
 CODE 2
 
-PARTE 2 - TRANSAÇÃO COM PROCEDURE
+PART 2 - TRANSACTION WITH PROCEDURE
 
-Você deverá criar outra transação, contudo, esta será definida dentro de uma procedure. Neste caso, assim como no exemplo em aula, deverá haver uma verificação de erro. Essa verificação irá acarretar um ROLLBACK, total ou parcial (SAVEPOINT).
+You will need to create another transaction; however, this one will be defined within a procedure. In this case, as in the example in class, there must be an error check. This check will result in a ROLLBACK, total or partial (SAVEPOINT).
 
 CODE 3
 
-PARTE 3 – BACKUP E RECOVERY
+PART 3 – BACKUP AND RECOVERY
 
-Objetivo:
+Objective:
 
-Neste etapa do desafio, você irá executar o backup do banco de dados e-commerce. Realize o backup e recovery do banco de dados;
+In this stage of the challenge, you will perform a backup of the e-commerce database. Perform the backup and recovery of the database;
 
-- Utilize o mysqdump para realizar o backup e recovery do banco de dados e-commerce;
-- Realize o backup de diferentes bancos de dados e inseria os recursos como: procedures, eventos e outros.
-- Adicione o arquivo de backup ao github juntamente com o script;
+- Use mysqdump to perform the backup and recovery of the e-commerce database;
+
+- Perform backups of different databases and insert resources such as: procedures, events, and others.
+
+- Add the backup file to GitHub along with the script;
