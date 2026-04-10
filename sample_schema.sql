@@ -1,11 +1,11 @@
--- Esquema mínimo para testar transações, procedures, triggers e eventos
--- Banco: ecommerce
+-- Minimal schema to test transactions, procedures, triggers and events
+-- Database: ecommerce
 
 DROP DATABASE IF EXISTS ecommerce;
 CREATE DATABASE ecommerce CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE ecommerce;
 
--- Tabela de produtos
+-- Products table
 CREATE TABLE products (
   id INT AUTO_INCREMENT PRIMARY KEY,
   sku VARCHAR(50) NOT NULL UNIQUE,
@@ -15,7 +15,7 @@ CREATE TABLE products (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- Tabela de clientes
+-- Customers table
 CREATE TABLE customers (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(200) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE customers (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- Tabela de pedidos
+-- Orders table
 CREATE TABLE orders (
   id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE orders (
   FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
--- Itens do pedido
+-- Order items table
 CREATE TABLE order_items (
   id INT AUTO_INCREMENT PRIMARY KEY,
   order_id INT NOT NULL,
@@ -44,17 +44,17 @@ CREATE TABLE order_items (
   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
--- Dados de exemplo
+-- Sample data
 INSERT INTO products (sku, name, price, stock) VALUES
-('SKU101','Camiseta Algodão',49.90,10),
-('SKU102','Caneca Cerâmica',29.90,5),
-('SKU103','Fone Bluetooth',199.90,2);
+('SKU101','Cotton T-Shirt',49.90,10),
+('SKU102','Ceramic Mug',29.90,5),
+('SKU103','Bluetooth Headset',199.90,2);
 
 INSERT INTO customers (name, email) VALUES
-('João Silva','joao@example.com'),
+('John Silva','joao@example.com'),
 ('Maria Souza','maria@example.com');
 
--- Exemplo de procedure: cria pedido com itens (simplificada)
+-- Example procedure: create an order with items (simplified)
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_create_order_simple$$
 CREATE PROCEDURE sp_create_order_simple(
@@ -66,10 +66,12 @@ BEGIN
   DECLARE v_price DECIMAL(10,2);
   DECLARE v_stock INT;
 
+  -- Lock the product row for update to check price and stock
   SELECT price, stock INTO v_price, v_stock FROM products WHERE id = p_product_id FOR UPDATE;
 
+  -- If not enough stock, raise an error
   IF v_stock < p_qty THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Estoque insuficiente';
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Insufficient stock';
   END IF;
 
   START TRANSACTION;
@@ -90,7 +92,7 @@ BEGIN
 END$$
 DELIMITER ;
 
--- Exemplo de trigger: atualiza total do pedido ao inserir item (alternativa)
+-- Example trigger: update order total after inserting an item (alternative approach)
 DELIMITER $$
 DROP TRIGGER IF EXISTS trg_after_insert_order_item$$
 CREATE TRIGGER trg_after_insert_order_item
@@ -103,8 +105,8 @@ BEGIN
 END$$
 DELIMITER ;
 
--- Exemplo de evento: rotina diária que marca pedidos antigos como 'COMPLETED' (para testar events)
--- Ativar event scheduler se necessário: SET GLOBAL event_scheduler = ON;
+-- Example event: daily job that marks old pending orders as COMPLETED (for testing events)
+-- Enable event scheduler if necessary: SET GLOBAL event_scheduler = ON;
 DELIMITER $$
 DROP EVENT IF EXISTS ev_mark_old_orders$$
 CREATE EVENT ev_mark_old_orders
@@ -118,7 +120,7 @@ BEGIN
 END$$
 DELIMITER ;
 
--- Exemplo de função (simples)
+-- Example function (simple)
 DELIMITER $$
 DROP FUNCTION IF EXISTS fn_order_total_items$$
 CREATE FUNCTION fn_order_total_items(p_order_id INT) RETURNS INT DETERMINISTIC
@@ -129,8 +131,8 @@ BEGIN
 END$$
 DELIMITER ;
 
--- Exemplo de uso da procedure
+-- Example usage of the procedure
 -- CALL sp_create_order_simple(1, 1, 2);
 
--- Verificações rápidas
-SELECT 'Schema criado' AS info;
+-- Quick check
+SELECT 'Schema created' AS info;
