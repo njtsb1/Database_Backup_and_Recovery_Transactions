@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simple Ecommerce Demo</title>
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <header class="site-header" role="banner">
+    <div class="brand">
+      <h1 id="site-title">Ecommerce Demo</h1>
+      <p id="site-subtitle">A minimal demo for transactions, backup and UI</p>
+    </div>
+
+    <nav class="top-nav" role="navigation" aria-label="Main navigation">
+      <button class="nav-btn active" data-target="home" aria-pressed="true">Home</button>
+      <button class="nav-btn" data-target="schema" aria-pressed="false">Schema</button>
+      <button class="nav-btn" data-target="transactions" aria-pressed="false">Transactions</button>
+      <button class="nav-btn" data-target="backup" aria-pressed="false">Backup</button>
+    </nav>
+
+    <div class="controls" role="region" aria-label="Controls">
+      <div class="lang-switch" aria-hidden="false">
+        <label for="lang" class="visually-hidden">Language</label>
+        <select id="lang" aria-label="Select language">
+          <option value="en">EN</option>
+          <option value="pt-BR">PT-BR</option>
+          <option value="es">ES</option>
+        </select>
+      </div>
+
+      <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme" title="Toggle theme">
+        <span id="theme-icon" aria-hidden="true"></span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main" role="main">
+    <section id="home" class="page active" tabindex="-1" aria-labelledby="home-title">
+      <h2 id="home-title">Welcome</h2>
+      <p id="home-desc">This small demo shows transactions, procedures and backup guidance.</p>
+
+      <div class="cards">
+        <article class="card" aria-labelledby="card1-title">
+          <h3 id="card1-title">Quick Start</h3>
+          <p>Load the schema, run sample transactions and test the stored procedures.</p>
+          <div class="card-actions">
+            <button class="btn primary" id="btn-schema">Load Schema</button>
+            <button class="btn" id="btn-run-sample">Run Sample</button>
+          </div>
+        </article>
+
+        <article class="card" aria-labelledby="card2-title">
+          <h3 id="card2-title">Backups</h3>
+          <p>Use mysqldump to export the database including routines, triggers and events.</p>
+          <div class="card-actions">
+            <button class="btn" id="btn-backup">Show Backup Commands</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="schema" class="page" tabindex="-1" aria-labelledby="schema-title">
+      <h2 id="schema-title">Schema</h2>
+      <p>Tables: <strong>products</strong>, <strong>customers</strong>, <strong>orders</strong>, <strong>order_items</strong>.</p>
+      <pre class="code-block" aria-label="Sample schema"><code id="schema-code" tabindex="0"></code></pre>
+    </section>
+
+    <section id="transactions" class="page" tabindex="-1" aria-labelledby="transactions-title">
+      <h2 id="transactions-title">Transactions</h2>
+      <p>Examples of atomic transactions, savepoints and error handling in procedures.</p>
+      <pre class="code-block" aria-label="Sample transactions"><code id="transactions-code" tabindex="0"></code></pre>
+    </section>
+
+    <section id="backup" class="page" tabindex="-1" aria-labelledby="backup-title">
+      <h2 id="backup-title">Backup & Recovery</h2>
+      <p>Commands to create and restore backups using <code>mysqldump</code>.</p>
+      <pre class="code-block" aria-label="Backup commands"><code id="backup-code" tabindex="0"></code></pre>
+    </section>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <small id="footer-text">© <span id="year"></span> Ecommerce Demo - Accessible • Responsive • Multilingual</small>
+  </footer>
+
+  <script src="./src/script.js" defer></script>
+</body>
+</html>

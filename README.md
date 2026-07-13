@@ -1,4 +1,6 @@
-# Project Challenge: Creating Transactions, Performing Database Backup and Recovery
+# Creating Transactions, Performing Database Backup and Recovery
+
+Project developed att SQL Database Specialist training program, under the guidance of specialist [Juliana Mascarenhas](https://github.com/julianazanelatto/ "Juliana Mascarenhas").
 
 PART 1 – TRANSACTIONS
 
@@ -29,3 +31,5 @@ In this stage of the challenge, you will perform a backup of the e-commerce data
 - Perform backups of different databases and insert resources such as: procedures, events, and others.
 
 - Add the backup file to GitHub along with the script;
+
+[LICENSE](./LICENSE)

@@ -1,0 +1,85 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Node / frontend (if you use node tooling)
+node_modules/
+npm-debug.log*
+yarn-error.log
+yarn-debug.log
+.pnpm-debug.log
+
+# Python / virtualenv (if applicable)
+venv/
+.env/
+.env.*.local
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Logs and runtime files
+*.log
+logs/
+*.pid
+*.seed
+
+# Build / distribution
+dist/
+build/
+coverage/
+*.tgz
+
+# Database files and local DBs
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.bak
+
+# MySQL / MariaDB dumps and backups
+# Ignore large or automated backups by default
+/backups/
+/backups/*
+*.sql.gz
+*.sql.tar.gz
+
+# !/backups/example_small_backup.sql
+
+# Avoid committing full SQL dumps by default (uncomment to ignore)
+/*.sql
+
+# Secrets and credentials
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+credentials/
+secrets/
+.env
+.env.local
+.env.*.local
+
+# CI / tooling
+/.github/
+/.github/workflows/
+/.vagrant/
+.vagrant.d/
+
+# Misc
+*.swp
+*~ 
+.cache/
+tmp/
+temp/
+
+# *.gz
+# *.zip
+
+# End of file
